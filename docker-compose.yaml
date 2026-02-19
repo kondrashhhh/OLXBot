@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # React приложение
+  frontend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: olx-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"  # Для HTTP
+      # - "443:443"  # Раскомментируйте если будете использовать HTTPS
+    networks:
+      - olx-network
+    # Если нужны переменные окружения для фронтенда
+    # environment:
+    #   - VITE_API_URL=http://backend:3000
+
+  # Node.js бот
+  backend:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: olx-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"  # Порт вашего node.js приложения
+    networks:
+      - olx-network
+    environment:
+      - NODE_ENV=production
+      # Добавьте другие переменные окружения, например:
+      # - DATABASE_URL=postgresql://user:pass@db:5432/olx
+      # - REDIS_URL=redis://redis:6379
+    volumes:
+      # Если нужно монтировать что-то для хранения данных
+      - ./bot/uploads:/app/uploads
+    # Если бот зависит от базы данных или других сервисов
+    # depends_on:
+    #   - db
+    #   - redis
+
+  # Если нужна база данных (пример с PostgreSQL)
+  # db:
+  #   image: postgres:15-alpine
+  #   container_name: olx-db
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_USER=olxuser
+  #     - POSTGRES_PASSWORD=olxpassword
+  #     - POSTGRES_DB=olxdb
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - olx-network
+  #   ports:
+  #     - "5432:5432"
+
+  # Если нужен Redis (пример)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: olx-redis
+  #   restart: unless-stopped
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - olx-network
+  #   ports:
+  #     - "6379:6379"
+
+networks:
+  olx-network:
+    driver: bridge
+
+# Тома для хранения данных (если используете БД)
+# volumes:
+#   postgres_data:
+#   redis_data:
